@@ -15,15 +15,12 @@ def generate_sql():
     lines = raw_data.splitlines()
     if not lines:
         return
-    # First line is column names
-    columns = lines[0].split("\t")  # SQL Server copies as tab-separated
     # So first line is column names
     columns = lines[0].split("\t")  # SQL Server copies as tab-separated ("\t")
     col_sql = ", ".join(columns)
 
     sql_statements = []
     for row in lines[1:]:
-        values = row.split("\t")
         values = row.split("\t")  # SQL Server copies as tab-separated ("\t")
         values_sql = ", ".join([f"'{v}'" if v else "NULL" for v in values])
         sql = f"INSERT INTO {table_name} ({col_sql}) VALUES ({values_sql});"
@@ -63,3 +60,4 @@ output_text.pack(padx=5, pady=2, fill="both", expand=True)
 tk.Button(root, text="Copy to Clipboard", command=copy_to_clipboard).pack(pady=5)
 
 root.mainloop()
+
