@@ -1,0 +1,63 @@
+import tkinter as tk
+from tkinter import scrolledtext, messagebox
+
+def generate_sql():
+    table_name = table_entry.get().strip()
+    raw_data = input_text.get("1.0", tk.END).strip()
+
+    if not table_name:
+        messagebox.showwarning("Missing Table", "Please enter a table name.")
+        return
+    if not raw_data:
+        messagebox.showwarning("No Data", "Please paste your SQL results.")
+        return
+
+    lines = raw_data.splitlines()
+    if not lines:
+        return
+
+    # First line is column names
+    columns = lines[0].split("\t")  # SQL Server copies as tab-separated
+    col_sql = ", ".join(columns)
+
+    sql_statements = []
+    for row in lines[1:]:
+        values = row.split("\t")
+        values_sql = ", ".join([f"'{v}'" if v else "NULL" for v in values])
+        sql = f"INSERT INTO {table_name} ({col_sql}) VALUES ({values_sql});"
+        sql_statements.append(sql)
+
+    output_text.delete("1.0", tk.END)
+    output_text.insert(tk.END, "\n".join(sql_statements))
+
+def copy_to_clipboard():
+    sql_output = output_text.get("1.0", tk.END).strip()
+    if not sql_output:
+        messagebox.showwarning("Nothing to Copy", "Please generate SQL first.")
+        return
+    root.clipboard_clear()
+    root.clipboard_append(sql_output)
+    root.update()  # keep contents after window is closed
+    messagebox.showinfo("Copied", "SQL statements copied to clipboard.")
+
+# GUI setup
+root = tk.Tk()
+root.title("SQL Insert Generator")
+
+tk.Label(root, text="Table Name:").pack(anchor="w", padx=5, pady=2)
+table_entry = tk.Entry(root, width=40)
+table_entry.pack(fill="x", padx=5, pady=2)
+
+tk.Label(root, text="Paste SQL Results (with headers):").pack(anchor="w", padx=5, pady=2)
+input_text = scrolledtext.ScrolledText(root, height=10, width=80)
+input_text.pack(padx=5, pady=2, fill="both", expand=True)
+
+tk.Button(root, text="Generate INSERTs", command=generate_sql).pack(pady=5)
+
+tk.Label(root, text="Generated SQL:").pack(anchor="w", padx=5, pady=2)
+output_text = scrolledtext.ScrolledText(root, height=10, width=80)
+output_text.pack(padx=5, pady=2, fill="both", expand=True)
+
+tk.Button(root, text="Copy to Clipboard", command=copy_to_clipboard).pack(pady=5)
+
+root.mainloop()
